@@ -1,0 +1,4 @@
+N-Body
+======
+
+A small simulation using verlet integration and an n^2 force algorithm to simulate gravitational bodies.
