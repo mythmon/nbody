@@ -1,0 +1,250 @@
+if (!window.console) console = {};
+console.log = console.log || function(){};
+console.warn = console.warn || function(){};
+console.error = console.error || function(){};
+console.info = console.info || function(){};
+
+TWOPI = Math.PI * 2;
+
+ctx = null;
+width = null;
+height = null;
+
+all_verts = new Array();
+all_edges = new Array();
+
+g = new Vector().xy(0,0);
+
+// This is called by document.onload
+function init() {
+    console.log("init");
+    canvas = $('canvas')
+    ctx = canvas[0].getContext("2d");
+    width = canvas.width();
+    height = canvas.height();
+
+    var offset = new Vector().xy(200,200);
+    var s = new Shape([
+        new Vector().polar(60,0).add(offset),
+        new Vector().polar(60,Math.PI*2/3).add(offset),
+        new Vector().polar(60,Math.PI*4/3).add(offset)
+    ]);
+
+    offset = new Vector().xy(500,250);
+    var s = new Shape([
+        new Vector().polar(60,0).add(offset),
+        new Vector().polar(60,Math.PI*2/3).add(offset),
+        new Vector().polar(60,Math.PI*4/3).add(offset)
+    ]);
+
+    return setInterval(draw,30);
+}
+
+// Draw loop
+function draw() {
+    if ($('#run-control:checked').val() == null) {
+        return;
+    }
+    ctx.clearRect(0,0,width,height);
+
+    for (var i=0; i<all_verts.length; i++) {
+        all_verts[i].tick(1);
+    }
+    for (var j=0; j<2; j++) {
+        for (var i=0; i<all_edges.length; i++) {
+            all_edges[i].tick(1);
+        }
+    }
+    for (var i=0; i<all_edges.length; i++) {
+        all_edges[i].draw();
+    }
+    for (var i=0; i<all_verts.length; i++) {
+        all_verts[i].draw();
+    }
+}
+
+function Vector() {
+    this.x = 0;
+    this.y = 0;
+    this.a = 0;
+    this.m = 0;
+
+    this.xy = function(x,y) {
+        this.x = x;
+        this.y = y;
+        this.updatePolar();
+        return this;
+    }
+
+    this.polar = function(m,a) {
+        this.m = m;
+        this.a = a;
+        this.updateXY();
+        return this;
+    }
+
+    this.updateXY = function() {
+        this.x = this.m * Math.cos(this.a);
+        this.y = this.m * Math.sin(this.a);
+    }
+
+    this.updatePolar = function() {
+        this.m = Math.sqrt(this.x*this.x + this.y*this.y);
+        this.a = Math.atan2(this.y,this.x);
+    }
+
+    this.add = function(v1) {
+        return new Vector().xy(this.x + v1.x, this.y + v1.y);
+    }
+
+    this.subtract = function(v1) {
+        return new Vector().xy(this.x - v1.x, this.y - v1.y);
+    }
+
+    this.times = function(s) {
+        return new Vector().polar(this.m * s, this.a);
+    }
+
+    this.unit = function() {
+        return new Vector.polar(this.a, 1);
+    }
+
+    this.dot = function(v) {
+        return this.x * v.x + this.y * v.y;
+    }
+
+    // calculates a right hand normal
+    this.normal = function() {
+        return new Vector().xy(-this.y, this.x).unit();
+    }
+}
+
+function Vertex(x,y,vx,vy) {
+    this.pos = new Vector().xy(x,y);
+    this.oldpos = new Vector().xy(x-vx, y-vy);
+    this.accel = new Vector().xy(0,0);
+
+    this.oldt = 1;
+
+    this.r = 2;
+    this.k = 1;
+    this.f = 1;
+
+    this.tick = function(t) {
+        this.accel = this.accel.add(g);
+
+        var tcv = t / this.oldt;
+
+        var vel = this.pos.subtract(this.oldpos).times(tcv);
+        var newpos = this.pos.add(vel).add(this.accel.times(t*t));
+
+        this.oldpos = this.pos;
+        this.pos = newpos;
+
+        this.accel = new Vector()
+
+        this.oldt = t;
+    }
+
+    this.draw = function() {
+        ctx.save();
+            ctx.translate(this.pos.x, this.pos.y);
+            ctx.beginPath();
+                ctx.arc(0,0,this.r,0,TWOPI,true);
+            ctx.closePath();
+            ctx.fill();
+        ctx.restore();
+    }
+}
+
+function Edge(v1, v2) {
+    this.v1 = v1;
+    this.v2 = v2;
+    this.length = Math.sqrt(Math.pow(v1.pos.x - v2.pos.x,2) + Math.pow(v1.pos.y - v2.pos.y,2));
+
+    this.tick = function() {
+        var dist = Math.sqrt(Math.pow(v1.pos.x - v2.pos.x,2) + Math.pow(v1.pos.y - v2.pos.y,2));
+
+        var ratio = this.length / dist;
+        var midx = (v1.pos.x + v2.pos.x) / 2;
+        var midy = (v1.pos.y + v2.pos.y) / 2;
+
+        v1.pos.x = midx + (v1.pos.x - midx) * ratio;
+        v1.pos.y = midy + (v1.pos.y - midy) * ratio;
+        v2.pos.x = midx + (v2.pos.x - midx) * ratio;
+        v2.pos.y = midy + (v2.pos.y - midy) * ratio;
+    }
+
+    this.draw = function() {
+        ctx.beginPath();
+            ctx.moveTo(v1.pos.x, v1.pos.y);
+            ctx.lineTo(v2.pos.x, v2.pos.y);
+        ctx.closePath();
+        ctx.stroke();
+    }
+}
+
+function Shape(points) {
+    this.verts = new Array();
+    this.edges = new Array();
+
+    for (var i=0; i<points.length; i++) {
+        this.verts.push(new Vertex(points[i].x, points[i].y, 0, 0));
+    }
+
+    for (var i=0; i<this.verts.length; i++) {
+        all_verts.push(this.verts[i]);
+        var e = new Edge(this.verts[i], this.verts[(i+1)%this.verts.length])
+        this.edges.push(e);
+        all_edges.push(e);
+    }
+
+    this.projectToAxis = function(axis) {
+        var dot = axis.dot(this.verts[0].pos);
+
+        var min = dot;
+        var max = dot;
+
+        for (var i=1; i<this.verts.length; i++) {
+            dot = axis.dot(this.verts[i].pos);
+            if (dot > max) { max = dot };
+            if (dot < min) { min = dot };
+        }
+        return {'min':min, 'max':max};
+    }
+
+    this.checkCollision = function(shape2) {
+        // iterate through all edges in BOTH shapes
+        for (var i=0; i<this.edges.length + shape2.edges.length; i++) {
+            var edge;
+            if (i < this.edges.length) {
+                edge = this.edges[i];
+            } else {
+                edge = shape2.edges[i-this.edges.length];
+            }
+
+            // get a normal to this edge
+            var normal = edge.v1.pos.subtract(edge.v2.pos).normal();
+
+            int1 = this.projectToAxis(normal);
+            int2 = shape2.projectToAxis(normal);
+
+            // if there is any seperation on any axis, there is not collision
+            if (overlap(int1, int2) > 0) {
+                return true;
+            }
+        }
+        // no seperating line, they are colliding.
+        return false;
+    }
+}
+
+// calculate the overlap between two intervals
+// int1, int2: {'min': min, 'max': max}
+function overlap(int1, int2) {
+    if (int1.min < int2.min) {
+        return int2.min - int1.max;
+    } else {
+        return int1.min - int2.max;
+    }
+}
