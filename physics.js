@@ -14,7 +14,7 @@ height = null;
 
 bodies = new Array();
 
-G = 0.5;
+G = 1;
 protoDiskSize = null;
 
 // This is called by document.onload
@@ -33,14 +33,14 @@ function init() {
     height = canvas.height();
     protoDiskSize = height * 0.5;
 
-    for (var i=0; i<4; i++) {
+    for (var i=0; i<200; i++) {
         var a = Math.random()*TWOPI;
         var m = Math.random() * protoDiskSize;
         var x = Math.cos(a)*m + width/2;
         var y = Math.sin(a)*m + height/2;
 
         a += Math.PI / 2;
-        m = 0;
+        m = 5;
         var vx = Math.cos(a) * m;
         var vy = Math.sin(a) * m;
         var mass = Math.random()*1+10;
@@ -50,13 +50,14 @@ function init() {
     return setInterval(draw,30);
 }
 
-timestep = 1;
+timestep = 0.1;
 // Main loop
 function draw() {
     if ($('#run:checked').val() == null) {
         return;
     }
-    ctx.clearRect(0,0,width,height);
+    ctx.fillStyle = "rgb(0,0,0)";
+    ctx.fillRect(0,0,width,height);
 
     // Calculate gravity forces
     for (var i = 0; i < bodies.length - 1; i++) {
@@ -160,6 +161,7 @@ function Body(x,y,vx,vy,mass) {
     }
 
     this.draw = function() {
+        ctx.fillStyle = "rgb(255,255,255)";
         ctx.save();
             ctx.translate(this.pos.x, this.pos.y);
             ctx.beginPath();
