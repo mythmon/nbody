@@ -23,15 +23,37 @@ function init() {
     canvas = $('#canvas')
     ctx = canvas[0].getContext("2d");
 
+    width = canvas.width();
+    height = canvas.height();
+
+    ui();
+
+    return setInterval(draw,30);
+}
+
+function ui() {
+    // add some stats
     canvas.after('<div id="stats"></div>');
     $('#stats').append('<span id="numBodies"></span>');
 
-    canvas.after('<form id="controls"></form>');
-    $('#controls').append('<input type="checkbox" id="run" checked="checked" />Run</form>');
+    // add some controls
+    canvas.after('<div><form id="controls"></form></div>');
+    // run checkbox
+    $('#controls').append('<input type="checkbox" id="run" checked="checked">Run</input>');
+    // clear
+    $('#controls').append('<input type="button" id="clear" value="Clear" />');
+    $('#clear').click(function() {
+        bodies.length = 0;
+    });
+    // protodisk
+    $('#controls').append('<input type="button" id="protodisk" value="Generate Disk" />');
+    $('#protodisk').click(function() {
+        protoDisk();
+    });
+}
 
-    width = canvas.width();
-    height = canvas.height();
-    protoDiskSize = height * 0.5;
+function protoDisk() {
+    protoDiskSize = height * 0.45;
 
     for (var i=0; i<200; i++) {
         var a = Math.random()*TWOPI;
@@ -44,13 +66,11 @@ function init() {
         var vx = Math.cos(a) * m;
         var vy = Math.sin(a) * m;
         var mass = Math.random()*1+10;
-        bodies[i] = new Body(x,y,vx,vy,mass);
+        bodies.push(new Body(x,y,vx,vy,mass));
     }
-
-    return setInterval(draw,30);
 }
 
-timestep = 0.1;
+timestep = 0.03;
 // Main loop
 function draw() {
     if ($('#run:checked').val() == null) {
@@ -88,7 +108,7 @@ function draw() {
         bodies[i].draw();
     }
 
-    $('numBodies').html("Bodies: " + bodies.length);
+    $('#numBodies').html("Bodies: " + bodies.length);
 }
 
 function Body(x,y,vx,vy,mass) {
