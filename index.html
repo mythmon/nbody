@@ -1,19 +1,45 @@
 <html>
 <head>
     <title>Sandbox - Canvas test</title>
-    <script type="text/javascript" src="physics.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
+    <script src="https://www.google.com/jsapi?key=ABQIAAAAddaxGoMurZGMYvNwzLhxSxR31IAHTsp0eFaPdeui82dKLzGy9hQShbrzolMYmlOa0kW3rQ6b3Dn4EA" type="text/javascript"></script>
+    <script tyle="text/javascript">
+        google.load("jquery", "1.4.3");
+        google.load("jqueryui", "1.8.6");
+    </script>
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css">
+
+    <script type="text/javascript" src="nbody.js"></script>
+    <link rel="stylesheet" type="text/css" href="nbody.css">
+
     <style>
         #canvas { border: 1px solid black; }
     </style>
 </head>
 
-<body onload="init();">
+<body>
 
 <p><a href="/">Back to the sandbox</a></p>
+<p>N-body problem using an n<sup>2</sup> verlet integration. An exercise in pseudo-physics, canvas, and jquery.</p>
+<p>Warning: If you are not using Google Chrome, this will (probably) be extremely slow.</p>
 
 <canvas id="canvas" width="800" height="500"></canvas>
-<p>N-body problem using an n^2 verlet integration.</p>
+<div id="stats">
+    <span id="numBodies"></span>
+</div>
+<div "controls">
+    <input type="checkbox" id="run" checked="checked" />Run
+    <input type="button" id="clear" value="Clear" />
+    <input type="button" id="protodisk" value="Generate Disk" />
+
+    <br />
+    <a href="#" id="protoOptsLink">Disk controls</a>
+    <div id="protoOpts">
+        Size: <span id="protoSizeLabel"></span><br />
+        <div id="protoSize" class="slider"></div>
+        Number: <span id="protoNumLabel"></span><br />
+        <div id="protoNum" class="slider"></div>
+    </div>
+</div>
 
 </body>
 

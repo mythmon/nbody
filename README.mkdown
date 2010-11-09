@@ -2,3 +2,5 @@ N-Body
 ======
 
 A small simulation using verlet integration and an n^2 force algorithm to simulate gravitational bodies.
+
+I am using it as a sandbox to learn pseudo-physics, canvas, and jquery.

@@ -17,7 +17,6 @@ bodies = new Array();
 G = 1;
 protoDiskSize = null;
 
-// This is called by document.onload
 function init() {
     console.log("init");
     canvas = $('#canvas')
@@ -30,32 +29,53 @@ function init() {
 
     return setInterval(draw,30);
 }
+$(document).ready(init);
 
 function ui() {
-    // add some stats
-    canvas.after('<div id="stats"></div>');
-    $('#stats').append('<span id="numBodies"></span>');
-
-    // add some controls
-    canvas.after('<div><form id="controls"></form></div>');
-    // run checkbox
-    $('#controls').append('<input type="checkbox" id="run" checked="checked">Run</input>');
-    // clear
-    $('#controls').append('<input type="button" id="clear" value="Clear" />');
+    // Add code for the controls
+    // clear button
     $('#clear').click(function() {
         bodies.length = 0;
     });
     // protodisk
-    $('#controls').append('<input type="button" id="protodisk" value="Generate Disk" />');
     $('#protodisk').click(function() {
         protoDisk();
+    });
+
+    // the proto disk options panel
+    $('#protoOptsLink').toggle(
+        function() {
+            $('#protoOpts').show();
+        },
+        function() {
+            $('#protoOpts').hide();
+        }
+    );
+    $('#protoOpts').hide();
+
+    $('#protoSize').slider({min:Math.min(width,height)/10, max:Math.min(width,height)/2});
+    sliderLabelUpdaterSetter($('#protoSize'), $('#protoSizeLabel'));
+    $('#protoSize').slider('value', Math.min(width,height)/3);
+
+    $('#protoNum').slider({min:10, max:500});
+    sliderLabelUpdaterSetter($('#protoNum'), $('#protoNumLabel'));
+    $('#protoNum').slider('value', 150);
+}
+
+function sliderLabelUpdaterSetter(slider, label) {
+    slider.bind( "slide", function(event, ui) {
+        label.html(ui.value);
+    });
+    slider.bind( "slidechange", function(event, ui) {
+        label.html(ui.value);
     });
 }
 
 function protoDisk() {
-    protoDiskSize = height * 0.45;
+    var protoDiskSize = $('#protoSize').slider('value');
+    var bodyCount = $('#protoNum').slider('value');
 
-    for (var i=0; i<200; i++) {
+    for (var i = 0; i < bodyCount; i++) {
         var a = Math.random()*TWOPI;
         var m = Math.random() * protoDiskSize;
         var x = Math.cos(a)*m + width/2;
@@ -148,7 +168,6 @@ function Body(x,y,vx,vy,mass) {
 
         // if hit
         if (distSq <= rSq) {
-            console.log("merging");
             // conserve momentum
             var newM = this.mass + other.mass;
             var thisP = this.pos.subtract(this.oldpos).times(this.mass);
